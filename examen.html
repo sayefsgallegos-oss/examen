@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Examen Inteligente</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 20px;
+      width: 400px;
+      backdrop-filter: blur(10px);
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card" id="app">
+  <h2>Evaluación Matemática</h2>
+  <div id="content"></div>
+</div>
+
+<script>
+let student = {};
+let startTime;
+let responses = [];
+
+const questions = {
+  easy: { q: "¿Cuánto es 2 + 2?", a: "4", next: "medium" },
+  medium: { q: "¿Cuánto es 5 × 6?", a: "30", next: "hard" },
+  hard: { q: "¿Cuánto es 12²?", a: "144", next: null }
+};
+
+function renderStart() {
+  document.getElementById("content").innerHTML = `
+    <input placeholder="Nombre" id="name">
+    <input placeholder="Edad" id="age">
+    <button onclick="startExam()">Comenzar</button>
+  `;
+}
+
+function startExam() {
+  student.name = document.getElementById("name").value;
+  student.age = document.getElementById("age").value;
+  showQuestion("easy");
+}
+
+function showQuestion(level) {
+  startTime = Date.now();
+  let q = questions[level];
+
+  document.getElementById("content").innerHTML = `
+    <h3>${q.q}</h3>
+    <input id="answer">
+    <button onclick="submitAnswer('${level}')">Responder</button>
+  `;
+}
+
+function submitAnswer(level) {
+  let time = (Date.now() - startTime) / 1000;
+  let answer = document.getElementById("answer").value;
+  let correct = answer == questions[level].a;
+
+  responses.push({ level, answer, correct, time });
+
+  if (correct && questions[level].next) {
+    showQuestion(questions[level].next);
+  } else {
+    finishExam();
+  }
+}
+
+function finishExam() {
+  document.getElementById("content").innerHTML = `<h3>¡Gracias!</h3>`;
+
+  fetch("https://script.google.com/macros/s/TU_SCRIPT_ID/exec", {
+    method: "POST",
+    body: JSON.stringify({ student, responses })
+  });
+}
+
+renderStart();
+</script>
+
+</body>
+</html>
